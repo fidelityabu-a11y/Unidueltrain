@@ -78,15 +78,25 @@ export interface CustomTimerConfig {
   quickBuzzTime: number; // default 15
   brainMathTime: number; // default 8
   customTime: number; // default 10
+  autoAdvance?: boolean; // default true
+  autoAdvanceDelayMs?: number; // default 1500 (1.5 seconds)
 }
 
 export function getTimerConfig(): CustomTimerConfig {
   try {
     const raw = localStorage.getItem(TIMER_SETTINGS_KEY);
-    if (!raw) return { quickBuzzTime: 15, brainMathTime: 8, customTime: 10 };
-    return JSON.parse(raw);
+    if (!raw) return { quickBuzzTime: 15, brainMathTime: 8, customTime: 10, autoAdvance: true, autoAdvanceDelayMs: 1500 };
+    const parsed = JSON.parse(raw);
+    return {
+      quickBuzzTime: 15,
+      brainMathTime: 8,
+      customTime: 10,
+      autoAdvance: true,
+      autoAdvanceDelayMs: 1500,
+      ...parsed,
+    };
   } catch {
-    return { quickBuzzTime: 15, brainMathTime: 8, customTime: 10 };
+    return { quickBuzzTime: 15, brainMathTime: 8, customTime: 10, autoAdvance: true, autoAdvanceDelayMs: 1500 };
   }
 }
 

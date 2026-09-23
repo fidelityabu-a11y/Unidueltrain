@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Gauge, Swords, Target, Trophy, Clock, BrainCircuit, BarChart3, Calculator, Globe2, ArrowRight, Flame, Shield, Sparkles } from 'lucide-react';
+import { Zap, Gauge, Swords, Target, Trophy, Clock, BrainCircuit, BarChart3, Calculator, Globe2, ArrowRight, Flame, Shield, Sparkles, Database, Shuffle } from 'lucide-react';
 import { CategoryId, GameModeType, OpponentProfile, PlayerStats } from '../types/duel';
 import { UNIVERSITY_RIVALS } from '../data/opponents';
 import { CATEGORIES } from '../data/categories';
@@ -21,6 +21,7 @@ interface DuelLobbyProps {
   onOpenTopicBrowser: () => void;
   onOpenReview: () => void;
   onOpenSubjectSection: (category?: CategoryId) => void;
+  onOpenMentalMath: () => void;
 }
 
 export const DuelLobby: React.FC<DuelLobbyProps> = ({
@@ -32,6 +33,7 @@ export const DuelLobby: React.FC<DuelLobbyProps> = ({
   onOpenTopicBrowser,
   onOpenReview,
   onOpenSubjectSection,
+  onOpenMentalMath,
 }) => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -64,6 +66,15 @@ export const DuelLobby: React.FC<DuelLobbyProps> = ({
             <div className="flex items-center gap-1.5">
               <Flame className="h-4 w-4 text-orange-400" />
               <span>Top Streak: <strong className="text-orange-400">{playerStats.highestStreak}</strong></span>
+            </div>
+            <span>·</span>
+            <div className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-indigo-300">
+              <Database className="h-3.5 w-3.5 text-indigo-400" />
+              <span>6,000+ Questions</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-300">
+              <Shuffle className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Fresh Shuffled Every Match</span>
             </div>
           </div>
         </div>
@@ -156,6 +167,41 @@ export const DuelLobby: React.FC<DuelLobbyProps> = ({
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-xs font-bold text-slate-950 shadow-md shadow-emerald-500/20 transition group-hover:bg-emerald-400 active:scale-[0.98]"
             >
               <span>Launch Brain Math Sprint</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mental Math Training Gym Banner / Feature Card */}
+      <div className="mt-10 overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/40 p-6 sm:p-8 shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-400 mb-3">
+              <Zap className="h-3.5 w-3.5" />
+              <span>DEDICATED CALCULATION SPEED GYM</span>
+            </div>
+            <h3 className="font-['Syne'] text-2xl font-bold text-white">
+              Train Mental Math Capabilities
+            </h3>
+            <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Drill lightning mental math tricks: cross-multiplication, squaring ending in 5 (<span className="font-mono text-emerald-300">65² = 4225</span>),
+              lab solution dilutions (<span className="font-mono text-emerald-300">C₁V₁ = C₂V₂</span>), logarithmic pH, matrix determinants, and 60-second speed blitzes.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-slate-400">
+              <span className="rounded bg-slate-800/90 px-2.5 py-1 text-slate-300">⏱️ 60s Blitz Sprint</span>
+              <span className="rounded bg-slate-800/90 px-2.5 py-1 text-slate-300">🔥 Sudden Death Streak Survivor</span>
+              <span className="rounded bg-slate-800/90 px-2.5 py-1 text-slate-300">🔢 Interactive Numpad & Keyboard</span>
+              <span className="rounded bg-slate-800/90 px-2.5 py-1 text-slate-300">📘 Formula & Shortcut Codex</span>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex flex-col gap-2">
+            <button
+              onClick={onOpenMentalMath}
+              className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-6 py-3.5 text-xs font-bold text-slate-950 shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 active:scale-95 transition"
+            >
+              <span>Enter Mental Math Gym</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

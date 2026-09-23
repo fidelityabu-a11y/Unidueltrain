@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Clock, Flame, Zap, Award, CheckCircle2, XCircle, ArrowRight, Lightbulb, Sparkles, User, HelpCircle, ShieldAlert } from 'lucide-react';
+import { Clock, Flame, Zap, Award, CheckCircle2, XCircle, ArrowRight, Lightbulb, Sparkles, User, HelpCircle, ShieldAlert, Pause, Play, FastForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { CategoryId, DifficultyLevel, GameModeType, OpponentProfile, PlayerStats, Question } from '../types/duel';
 import { CATEGORIES } from '../data/categories';
 import { soundEngine } from '../utils/audio';
 import { questionService } from '../utils/questionService';
-import { recordMistake } from '../utils/storage';
+import { recordMistake, getTimerConfig, saveTimerConfig } from '../utils/storage';
 
 interface ArenaPlayProps {
   mode: GameModeType;
@@ -56,6 +56,14 @@ export const ArenaPlay: React.FC<ArenaPlayProps> = ({
   const [loadingCoach, setLoadingCoach] = useState<boolean>(false);
   const [opponentBuzzedFirst, setOpponentBuzzedFirst] = useState<boolean>(false);
 
+  // Auto-Advance Question Progression State (Automatically advances without needing to click Next)
+  const initialTimerSettings = useRef(getTimerConfig());
+  const [autoAdvance, setAutoAdvance] = useState<boolean>(initialTimerSettings.current.autoAdvance ?? true);
+  const [autoAdvanceDelayMs, setAutoAdvanceDelayMs] = useState<number>(initialTimerSettings.current.autoAdvanceDelayMs ?? 1500);
+  const [autoAdvanceRemainingMs, setAutoAdvanceRemainingMs] = useState<number>(1500);
+  const [isAutoAdvancePaused, setIsAutoAdvancePaused] = useState<boolean>(false);
+  const autoAdvanceIntervalRef = useRef<any>(null);
+
   // Match Question Log for comprehensive post-game review
   const gameLogRef = useRef<{ question: Question; userAns: string; isCorrect: boolean; timeSpent: number }[]>([]);
   const questionStartTimeRef = useRef<number>(Date.now());
@@ -64,12 +72,26 @@ export const ArenaPlay: React.FC<ArenaPlayProps> = ({
 
   const isUntimed = timePerQuestion <= 0;
 
+  // Toggle Auto Advance preference and persist
+  const handleToggleAutoAdvance = () => {
+    const nextVal = !autoAdvance;
+    setAutoAdvance(nextVal);
+    const curr = getTimerConfig();
+    saveTimerConfig({ ...curr, autoAdvance: nextVal });
+  };
+
   // Load question
   const loadQuestion = useCallback(() => {
+    if (autoAdvanceIntervalRef.current) {
+      clearInterval(autoAdvanceIntervalRef.current);
+      autoAdvanceIntervalRef.current = null;
+    }
     setIsAnswered(false);
     setSelectedAnswer(null);
     setCoachAnalysis(null);
     setOpponentBuzzedFirst(false);
+    setIsAutoAdvancePaused(false);
+    setAutoAdvanceRemainingMs(autoAdvanceDelayMs);
     setTimeLeft(timePerQuestion > 0 ? timePerQuestion : 0);
 
     const nextQ = questionService.getNextQuestion(
@@ -228,6 +250,10 @@ export const ArenaPlay: React.FC<ArenaPlayProps> = ({
 
   // Next question or finish
   const handleNext = () => {
+    if (autoAdvanceIntervalRef.current) {
+      clearInterval(autoAdvanceIntervalRef.current);
+      autoAdvanceIntervalRef.current = null;
+    }
     if (currentIndex + 1 >= totalQuestions) {
       handleCompleteRound();
     } else {
@@ -235,6 +261,42 @@ export const ArenaPlay: React.FC<ArenaPlayProps> = ({
       loadQuestion();
     }
   };
+
+  // Automatic question progression (Auto-Advance) without user needing to press Next
+  useEffect(() => {
+    if (!isAnswered || !autoAdvance || isAutoAdvancePaused) {
+      if (autoAdvanceIntervalRef.current) {
+        clearInterval(autoAdvanceIntervalRef.current);
+        autoAdvanceIntervalRef.current = null;
+      }
+      return;
+    }
+
+    const totalMs = autoAdvanceDelayMs;
+    const startTime = Date.now();
+    setAutoAdvanceRemainingMs(totalMs);
+
+    autoAdvanceIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, totalMs - elapsed);
+      setAutoAdvanceRemainingMs(remaining);
+
+      if (remaining <= 0) {
+        if (autoAdvanceIntervalRef.current) {
+          clearInterval(autoAdvanceIntervalRef.current);
+          autoAdvanceIntervalRef.current = null;
+        }
+        handleNext();
+      }
+    }, 40);
+
+    return () => {
+      if (autoAdvanceIntervalRef.current) {
+        clearInterval(autoAdvanceIntervalRef.current);
+        autoAdvanceIntervalRef.current = null;
+      }
+    };
+  }, [isAnswered, autoAdvance, isAutoAdvancePaused, autoAdvanceDelayMs, currentIndex, totalQuestions]);
 
   const handleCompleteRound = () => {
     const log = gameLogRef.current;
@@ -297,6 +359,7 @@ export const ArenaPlay: React.FC<ArenaPlayProps> = ({
   // Request AI Grandmaster Coach Breakdown
   const handleAskCoach = async () => {
     if (!currentQuestion) return;
+    setIsAutoAdvancePaused(true); // Pause auto-advance so the player can carefully study the coach's speed tactics
     setLoadingCoach(true);
     const explanation = await questionService.getCoachExplanation(
       currentQuestion.question,
@@ -424,8 +487,25 @@ export const ArenaPlay: React.FC<ArenaPlayProps> = ({
             </span>
           </div>
 
-          {/* Circular SVG Timer or Untimed Icon */}
-          <div className="flex items-center gap-2">
+          {/* Circular SVG Timer or Untimed Icon & Auto-Advance Toggle */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleToggleAutoAdvance}
+              title={`Automatic question advance is ${autoAdvance ? 'ON' : 'OFF'}. Click to toggle.`}
+              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] font-semibold border transition active:scale-95 ${
+                autoAdvance
+                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                  : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+              }`}
+            >
+              <Zap className={`h-3.5 w-3.5 ${autoAdvance ? 'text-amber-400' : 'text-slate-500'}`} />
+              <span className="hidden sm:inline">Auto-Advance:</span>
+              <span className={autoAdvance ? 'text-amber-400 font-bold' : 'text-slate-400'}>
+                {autoAdvance ? 'ON' : 'OFF'}
+              </span>
+            </button>
+
             {isUntimed ? (
               <div className="flex h-12 items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-950/40 px-3 py-1 font-mono text-xs font-bold text-cyan-300">
                 <span className="text-base leading-none">∞</span>
@@ -537,7 +617,7 @@ export const ArenaPlay: React.FC<ArenaPlayProps> = ({
         {/* Immediate Post-Answer Breakdown & Navigation */}
         {isAnswered && (
           <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-950/90 p-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-            {/* Answer Result Banner */}
+            {/* Answer Result Banner & Navigation */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 {selectedAnswer === currentQuestion.options[currentQuestion.correctIndex] ? (
@@ -553,16 +633,62 @@ export const ArenaPlay: React.FC<ArenaPlayProps> = ({
                 )}
               </div>
 
-              {/* Next Question CTA */}
-              <button
-                onClick={handleNext}
-                autoFocus
-                className="flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 shadow-md shadow-amber-500/20 transition hover:bg-amber-400 active:scale-95"
-              >
-                <span>{currentIndex + 1 >= totalQuestions ? 'Finish Match' : 'Next Question'}</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              {/* Auto-Advance status + Next Action */}
+              <div className="flex items-center gap-2">
+                {autoAdvance && !isAutoAdvancePaused ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5">
+                    <div className="flex items-center gap-1.5 text-xs text-amber-300 font-mono font-semibold">
+                      <Zap className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+                      <span>Next in {(autoAdvanceRemainingMs / 1000).toFixed(1)}s</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsAutoAdvancePaused(true)}
+                      className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition flex items-center gap-1"
+                      title="Pause auto-advance to read the explanation"
+                    >
+                      <Pause className="h-3 w-3" />
+                      <span>Pause</span>
+                    </button>
+                  </div>
+                ) : autoAdvance && isAutoAdvancePaused ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-1.5">
+                    <span className="text-xs text-slate-400 font-mono">Auto-advance paused</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsAutoAdvancePaused(false)}
+                      className="rounded-lg border border-amber-500/40 bg-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/30 transition flex items-center gap-1"
+                    >
+                      <Play className="h-3 w-3" />
+                      <span>Resume</span>
+                    </button>
+                  </div>
+                ) : null}
+
+                {/* Immediate Next Question Button */}
+                <button
+                  onClick={handleNext}
+                  autoFocus
+                  className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 shadow-md shadow-amber-500/20 transition hover:bg-amber-400 active:scale-95"
+                  title="Advance immediately to next question"
+                >
+                  <span>{currentIndex + 1 >= totalQuestions ? 'Finish Match' : 'Next Now'}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
+
+            {/* Smooth animated auto-advance progress countdown bar */}
+            {autoAdvance && !isAutoAdvancePaused && (
+              <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden mt-3 mb-1">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 transition-all duration-75"
+                  style={{
+                    width: `${Math.max(0, Math.min(100, ((autoAdvanceDelayMs - autoAdvanceRemainingMs) / autoAdvanceDelayMs) * 100))}%`,
+                  }}
+                />
+              </div>
+            )}
 
             {/* Standard Explanation */}
             <div className="mt-3 text-xs text-slate-300 leading-relaxed">

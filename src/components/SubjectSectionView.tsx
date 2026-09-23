@@ -31,6 +31,7 @@ interface SubjectSectionViewProps {
     difficulty?: DifficultyLevel
   ) => void;
   onBackToLobby: () => void;
+  onOpenMentalMath?: () => void;
 }
 
 // Subject-specific formula & mental shortcut cheat-sheets
@@ -154,6 +155,7 @@ export const SubjectSectionView: React.FC<SubjectSectionViewProps> = ({
   initialCategory = 'data_analysis',
   onStartSubjectDrill,
   onBackToLobby,
+  onOpenMentalMath,
 }) => {
   const [activeCategory, setActiveCategory] = useState<CategoryId>(initialCategory);
   const [selectedSubtopic, setSelectedSubtopic] = useState<string>('all');
@@ -298,6 +300,19 @@ export const SubjectSectionView: React.FC<SubjectSectionViewProps> = ({
             <p className="mt-2 text-sm text-slate-300 leading-relaxed">
               {meta.tagline}. Every question in this session is guaranteed to come solely from the official <strong>{meta.name}</strong> syllabus.
             </p>
+
+            {(activeCategory === 'data_analysis' || activeCategory === 'applied_math') && onOpenMentalMath && (
+              <div className="mt-3 inline-flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onOpenMentalMath}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 transition"
+                >
+                  <Zap className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Train Rapid Mental Calculations in the Gym →</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Player stats in this subject */}

@@ -1,5 +1,6 @@
 import { CategoryId, DifficultyLevel, LeaderboardEntry, Question } from '../types/duel';
 import { generateProceduralQuestion, generateQuestionBatch } from '../data/questionGenerator';
+import { questionTracker, QUESTION_BANK_STATS, cryptoShuffle } from '../data/questionBank/questionBankEngine';
 
 class QuestionService {
   private onlineQueue: Question[] = [];
@@ -8,6 +9,20 @@ class QuestionService {
 
   constructor() {
     this.prefetchAIQuestions();
+  }
+
+  // Get live stats on bank capacity & seen questions
+  getBankStats() {
+    return {
+      ...QUESTION_BANK_STATS,
+      seenCount: questionTracker.getSeenCount(),
+      availableFresh: Math.max(100, QUESTION_BANK_STATS.totalCapacity - questionTracker.getSeenCount()),
+    };
+  }
+
+  resetSeenHistory() {
+    this.seenQuestions.clear();
+    questionTracker.resetHistory();
   }
 
   // Pre-fetch a batch of online questions in background
@@ -24,7 +39,7 @@ class QuestionService {
         const data = await res.json();
         if (data.success && Array.isArray(data.questions)) {
           for (const q of data.questions) {
-            if (!this.seenQuestions.has(q.question)) {
+            if (!this.seenQuestions.has(q.question) && !questionTracker.hasSeen(q.question)) {
               this.onlineQueue.push(q);
             }
           }
@@ -37,7 +52,7 @@ class QuestionService {
     }
   }
 
-  // Get next question with adaptive difficulty
+  // Get next question with adaptive difficulty and guaranteed fresh shuffle
   getNextQuestion(
     category?: CategoryId,
     streak: number = 0,
@@ -64,10 +79,17 @@ class QuestionService {
           candidate.topic.toLowerCase().includes(subtopic.toLowerCase()) || 
           subtopic.toLowerCase().includes(candidate.topic.toLowerCase());
 
-        if (matchesSubtopic && !this.seenQuestions.has(candidate.question)) {
+        if (matchesSubtopic && !this.seenQuestions.has(candidate.question) && !questionTracker.hasSeen(candidate.question)) {
           this.onlineQueue.splice(idx, 1);
           this.seenQuestions.add(candidate.question);
-          // trigger prefetch if low
+          questionTracker.markSeen(candidate.question);
+          
+          // Re-shuffle options so answer position is always random
+          const correctAns = candidate.options[candidate.correctIndex];
+          candidate.options = cryptoShuffle(candidate.options);
+          candidate.correctIndex = candidate.options.indexOf(correctAns);
+
+          // Trigger prefetch if low
           if (this.onlineQueue.length < 3) {
             this.prefetchAIQuestions(category);
           }
@@ -76,7 +98,7 @@ class QuestionService {
       }
     }
 
-    // Procedural instant generator with category and subtopic filter
+    // Pull from our 6,000+ question bank engine
     const question = generateProceduralQuestion(category, diff, subtopic);
     this.seenQuestions.add(question.question);
     return question;
@@ -86,11 +108,10 @@ class QuestionService {
   getRoundBatch(
     count: number,
     categories: CategoryId[],
-    difficulty: DifficultyLevel = 'varsity'
+    difficulty: DifficultyLevel = 'varsity',
+    subtopic?: string
   ): Question[] {
-    const list: Question[] = [];
-    const pool = generateQuestionBatch(count, categories, difficulty);
-    return pool;
+    return generateQuestionBatch(count, categories, difficulty, subtopic);
   }
 
   // Fetch online leaderboard

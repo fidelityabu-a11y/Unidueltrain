@@ -13,11 +13,12 @@ import { TimerSettingsModal } from './components/TimerSettingsModal';
 import { ReviewModal } from './components/ReviewModal';
 import { TopicDrillModal } from './components/TopicDrillModal';
 import { SubjectSectionView } from './components/SubjectSectionView';
+import { MentalMathGym } from './components/MentalMathGym';
 import { getStoredProfile, saveStoredProfile, getTimerConfig, saveTimerConfig, CustomTimerConfig } from './utils/storage';
 import { CATEGORIES } from './data/categories';
 
 export default function App() {
-  const [view, setView] = useState<'lobby' | 'arena' | 'leaderboard' | 'subjects'>('lobby');
+  const [view, setView] = useState<'lobby' | 'arena' | 'leaderboard' | 'subjects' | 'mental_math'>('lobby');
   const [playerStats, setPlayerStats] = useState<PlayerStats>(getStoredProfile());
   const [timerConfig, setTimerConfig] = useState<CustomTimerConfig>(getTimerConfig());
   const [activeSubjectCategory, setActiveSubjectCategory] = useState<CategoryId>('data_analysis');
@@ -150,6 +151,7 @@ export default function App() {
   };
 
   const getCurrentModeTitle = (): string | undefined => {
+    if (view === 'mental_math') return 'Mental Math Training Gym';
     if (view !== 'arena') return undefined;
     switch (gameConfig.mode) {
       case 'quick_buzz':
@@ -180,6 +182,7 @@ export default function App() {
         }}
         onOpenTopicBrowser={() => setShowTopicModal(true)}
         onOpenSubjectSection={handleOpenSubjectSection}
+        onOpenMentalMath={() => setView('mental_math')}
         onGoHome={() => setView('lobby')}
         currentModeTitle={getCurrentModeTitle()}
       />
@@ -198,6 +201,13 @@ export default function App() {
               setShowReviewModal(true);
             }}
             onOpenSubjectSection={handleOpenSubjectSection}
+            onOpenMentalMath={() => setView('mental_math')}
+          />
+        )}
+
+        {view === 'mental_math' && (
+          <MentalMathGym
+            onBackToLobby={() => setView('lobby')}
           />
         )}
 
@@ -207,6 +217,7 @@ export default function App() {
             initialCategory={activeSubjectCategory}
             onStartSubjectDrill={handleStartSubjectDrill}
             onBackToLobby={() => setView('lobby')}
+            onOpenMentalMath={() => setView('mental_math')}
           />
         )}
 

@@ -16,6 +16,8 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
   const [quickBuzzTime, setQuickBuzzTime] = useState(config.quickBuzzTime);
   const [brainMathTime, setBrainMathTime] = useState(config.brainMathTime);
   const [customTime, setCustomTime] = useState(config.customTime);
+  const [autoAdvance, setAutoAdvance] = useState(config.autoAdvance ?? true);
+  const [autoAdvanceDelayMs, setAutoAdvanceDelayMs] = useState(config.autoAdvanceDelayMs ?? 1500);
 
   const presetTimes = [5, 8, 10, 12, 15, 20, 30];
 
@@ -24,6 +26,8 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
       quickBuzzTime,
       brainMathTime,
       customTime,
+      autoAdvance,
+      autoAdvanceDelayMs,
     });
     onClose();
   };
@@ -32,6 +36,8 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
     setQuickBuzzTime(15);
     setBrainMathTime(8);
     setCustomTime(10);
+    setAutoAdvance(true);
+    setAutoAdvanceDelayMs(1500);
   };
 
   return (
@@ -163,6 +169,57 @@ export const TimerSettingsModal: React.FC<TimerSettingsModalProps> = ({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Automatic Question Progression (Auto-Advance) */}
+          <div className="rounded-xl border border-amber-500/30 bg-amber-950/10 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-amber-400" />
+                <span className="text-sm font-semibold text-white">
+                  Automatic Question Advance
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAutoAdvance(prev => !prev)}
+                className={`flex h-6 w-11 items-center rounded-full transition-colors ${
+                  autoAdvance ? 'bg-amber-500 justify-end' : 'bg-slate-700 justify-start'
+                } p-1`}
+              >
+                <div className="h-4 w-4 rounded-full bg-white shadow-md" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mb-3">
+              Automatically transitions to the next question as soon as you answer or time runs out, without needing to press "Next Question".
+            </p>
+
+            {autoAdvance && (
+              <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+                <span className="text-xs text-slate-300 font-medium">Advance Speed Delay:</span>
+                <div className="flex gap-1.5">
+                  {[
+                    { label: 'Instant (0.8s)', ms: 800 },
+                    { label: 'Fast (1.2s)', ms: 1200 },
+                    { label: 'Normal (1.5s)', ms: 1500 },
+                    { label: 'Relaxed (2.5s)', ms: 2500 },
+                  ].map(option => (
+                    <button
+                      key={option.ms}
+                      type="button"
+                      onClick={() => setAutoAdvanceDelayMs(option.ms)}
+                      className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition ${
+                        autoAdvanceDelayMs === option.ms
+                          ? 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'border border-slate-800 bg-slate-900 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { BookOpen, BarChart3, BrainCircuit, Calculator, Globe2, ArrowRight, CheckCircle2, ChevronRight, Zap } from 'lucide-react';
+import { BookOpen, BarChart3, BrainCircuit, Calculator, Globe2, ArrowRight, CheckCircle2, ChevronRight, Zap, Shuffle, Database, RefreshCw } from 'lucide-react';
 import { CategoryId } from '../types/duel';
 import { CATEGORIES } from '../data/categories';
+import { questionService } from '../utils/questionService';
 
 interface TopicDrillModalProps {
   onStartTargetedDrill: (category: CategoryId) => void;
@@ -13,8 +14,17 @@ export const TopicDrillModal: React.FC<TopicDrillModalProps> = ({
   onClose,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('data_analysis');
+  const [bankStats, setBankStats] = useState(questionService.getBankStats());
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
 
   const catMeta = CATEGORIES[selectedCategory];
+
+  const handleResetHistory = () => {
+    questionService.resetSeenHistory();
+    setBankStats(questionService.getBankStats());
+    setResetMessage('Question history reset! All 6,000+ questions are refreshed.');
+    setTimeout(() => setResetMessage(null), 3500);
+  };
 
   const getIcon = (id: CategoryId) => {
     switch (id) {
@@ -53,6 +63,47 @@ export const TopicDrillModal: React.FC<TopicDrillModalProps> = ({
           >
             ✕
           </button>
+        </div>
+
+        {/* 6,000+ Question Bank & Dynamic Shuffling Banner */}
+        <div className="mt-4 rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-slate-900 to-purple-950/40 p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0">
+                <Database className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-sm font-bold text-indigo-300">
+                    6,000+ Tournament Question Bank
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                    <Shuffle className="h-3 w-3" />
+                    <span>Auto-Shuffled Fresh Every Game</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Over <strong className="text-slate-200">8,600+ unique questions & procedural variants</strong> across the 4 domains. Non-repetition engine active ({bankStats.seenCount} seen in current cycle).
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleResetHistory}
+              title="Reset question history to reshuffle entire pool"
+              className="shrink-0 flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-[11px] text-slate-300 hover:bg-slate-700 hover:text-white transition"
+            >
+              <RefreshCw className="h-3 w-3" />
+              <span>Reshuffle Entire Bank</span>
+            </button>
+          </div>
+
+          {resetMessage && (
+            <div className="mt-2 text-xs font-semibold text-emerald-400 bg-emerald-950/60 p-2 rounded-lg border border-emerald-800/40 flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>{resetMessage}</span>
+            </div>
+          )}
         </div>
 
         {/* 4 Main Category Cards */}

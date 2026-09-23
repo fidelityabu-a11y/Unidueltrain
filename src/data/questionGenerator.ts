@@ -735,6 +735,8 @@ function genAfricanGeneralKnowledge(diff: DifficultyLevel): Question {
   );
 }
 
+import { generateQuestionFromBank, generateShuffledRound } from './questionBank/questionBankEngine';
+
 // ----------------------------------------------------
 // DISPATCHER & PUBLIC API
 // ----------------------------------------------------
@@ -744,71 +746,14 @@ export function generateProceduralQuestion(
   difficulty: DifficultyLevel = 'varsity',
   subtopic?: string
 ): Question {
-  const chosenCat: CategoryId =
-    category || choice(['data_analysis', 'verbal_reasoning', 'applied_math', 'general_knowledge']);
-
-  const matchTopic = (topicName: string) => {
-    if (!subtopic || subtopic === 'all') return true;
-    return topicName.toLowerCase().includes(subtopic.toLowerCase()) || subtopic.toLowerCase().includes(topicName.toLowerCase());
-  };
-
-  switch (chosenCat) {
-    case 'data_analysis': {
-      const generators = [
-        { name: 'Mean, Median and Range', fn: genMeanMedianRange },
-        { name: 'Interquartile Range & Quartiles', fn: genIQRAndQuartiles },
-        { name: 'Circle Graphs & Frequency', fn: genPieChartAndFrequency },
-        { name: 'Elementary Probability', fn: genElementaryProbability },
-        { name: 'Combinations & Permutations', fn: genCombinationsPermutations },
-      ];
-      const matched = generators.filter(g => matchTopic(g.name));
-      const picked = (matched.length > 0 ? choice(matched) : choice(generators)).fn;
-      return picked(difficulty);
-    }
-    case 'verbal_reasoning': {
-      const generators = [
-        { name: 'Analogy', fn: genAnalogy },
-        { name: 'Classifications', fn: genClassifications },
-        { name: 'Blood Relations', fn: genBloodRelations },
-        { name: 'Direction Sense Test', fn: genDirectionSense },
-        { name: 'Coding/Decoding', fn: genCodingDecoding },
-        { name: 'Alphabet Test', fn: genAlphabetSeries },
-      ];
-      const matched = generators.filter(g => matchTopic(g.name));
-      const picked = (matched.length > 0 ? choice(matched) : choice(generators)).fn;
-      return picked(difficulty);
-    }
-    case 'applied_math': {
-      const generators = [
-        { name: 'Ratios, Proportions & Dilutions', fn: genMolarityDilution },
-        { name: 'Calculus (Differentiation)', fn: genCalculusDerivatives },
-        { name: 'Vectors and Matrices', fn: gen2x2Determinant },
-        { name: 'Units and Dimensional Analysis', fn: genUnitConversions },
-        { name: 'Probabilities in Genetics', fn: genGeneticsPunnett },
-        { name: 'Trigonometry', fn: genTrigonometry },
-      ];
-      const matched = generators.filter(g => matchTopic(g.name));
-      const picked = (matched.length > 0 ? choice(matched) : choice(generators)).fn;
-      return picked(difficulty);
-    }
-    case 'general_knowledge': {
-      return genAfricanGeneralKnowledge(difficulty);
-    }
-  }
+  return generateQuestionFromBank(category, difficulty, subtopic);
 }
 
 export function generateQuestionBatch(
   count: number,
   categories: CategoryId[],
-  difficulty: DifficultyLevel = 'varsity'
+  difficulty: DifficultyLevel = 'varsity',
+  subtopic?: string
 ): Question[] {
-  const cats = categories.length > 0 ? categories : (['data_analysis', 'verbal_reasoning', 'applied_math', 'general_knowledge'] as CategoryId[]);
-  const batch: Question[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const cat = cats[i % cats.length];
-    batch.push(generateProceduralQuestion(cat, difficulty));
-  }
-
-  return shuffle(batch);
+  return generateShuffledRound(count, categories, difficulty, subtopic);
 }

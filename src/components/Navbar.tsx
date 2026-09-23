@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, Volume2, VolumeX, Clock, BookOpen, User, Flame, Sparkles, Shield, Target } from 'lucide-react';
+import { Trophy, Volume2, VolumeX, Clock, BookOpen, User, Flame, Sparkles, Shield, Target, Zap } from 'lucide-react';
 import { CategoryId, PlayerStats } from '../types/duel';
 import { FAMOUS_UNIVERSITIES } from '../data/opponents';
 import { soundEngine } from '../utils/audio';
@@ -12,6 +12,7 @@ interface NavbarProps {
   onOpenReview: () => void;
   onOpenTopicBrowser: () => void;
   onOpenSubjectSection: (category?: CategoryId) => void;
+  onOpenMentalMath: () => void;
   onGoHome: () => void;
   currentModeTitle?: string;
 }
@@ -24,6 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenReview,
   onOpenTopicBrowser,
   onOpenSubjectSection,
+  onOpenMentalMath,
   onGoHome,
   currentModeTitle,
 }) => {
@@ -125,6 +127,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Target className="h-3.5 w-3.5 text-amber-400" />
               <span>Subject Areas</span>
+            </button>
+
+            {/* Mental Math Training Gym */}
+            <button
+              onClick={onOpenMentalMath}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-2.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20 active:scale-95 shadow-sm"
+              title="Train Mental Math capabilities: Cross-multiplication, squaring ending in 5, dilutions, 60s blitz"
+            >
+              <Zap className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Mental Math</span>
             </button>
 
             {/* Timer Settings Button */}
