@@ -1,0 +1,71 @@
+import { OpponentProfile } from '../types/duel';
+
+export const UNIVERSITY_RIVALS: OpponentProfile[] = [
+  {
+    name: 'Kofi Asare',
+    university: 'KNUST (Ghana)',
+    avatarColor: 'from-amber-600 to-yellow-500',
+    speedRating: 7,
+    accuracyRating: 0.82,
+    buzzSpeedRange: [4.5, 9.0],
+  },
+  {
+    name: 'Amina Danjuma',
+    university: 'Ahmadu Bello Univ (ABU)',
+    avatarColor: 'from-emerald-600 to-teal-500',
+    speedRating: 8.5,
+    accuracyRating: 0.88,
+    buzzSpeedRange: [3.8, 7.5],
+  },
+  {
+    name: 'Chinedu Okonkwo',
+    university: 'Univ of Nigeria Nsukka (UNN)',
+    avatarColor: 'from-blue-600 to-indigo-500',
+    speedRating: 8.0,
+    accuracyRating: 0.85,
+    buzzSpeedRange: [4.0, 8.0],
+  },
+  {
+    name: 'Simphiwe Ndlovu',
+    university: 'Univ of Cape Town (UCT)',
+    avatarColor: 'from-purple-600 to-violet-500',
+    speedRating: 8.2,
+    accuracyRating: 0.87,
+    buzzSpeedRange: [3.9, 7.8],
+  },
+  {
+    name: 'Babatunde Adeleke',
+    university: 'Univ of Lagos (UNILAG)',
+    avatarColor: 'from-rose-600 to-orange-500',
+    speedRating: 9.0,
+    accuracyRating: 0.90,
+    buzzSpeedRange: [3.2, 6.8],
+  },
+  {
+    name: 'Yetunde Oladipo',
+    university: 'Univ of Ibadan (UI)',
+    avatarColor: 'from-cyan-600 to-blue-500',
+    speedRating: 9.2,
+    accuracyRating: 0.92,
+    buzzSpeedRange: [3.0, 6.5],
+  },
+];
+
+export const FAMOUS_UNIVERSITIES = [
+  'University of Lagos (UNILAG)',
+  'University of Ibadan (UI)',
+  'Obafemi Awolowo University (OAU)',
+  'Ahmadu Bello University (ABU)',
+  'University of Nigeria Nsukka (UNN)',
+  'Covenant University',
+  'KNUST (Ghana)',
+  'University of Ghana (Legon)',
+  'University of Cape Town (UCT)',
+  'Makerere University (Uganda)',
+  'Cairo University (Egypt)',
+  'University of Nairobi (Kenya)',
+  'FUTA Akure',
+  'University of Ilorin (UNILORIN)',
+  'Bells University',
+  'Babcock University',
+];

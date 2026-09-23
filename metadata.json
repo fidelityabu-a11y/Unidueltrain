@@ -1,0 +1,8 @@
+{
+  "name": "Varsity Duel - University Academic Arena",
+  "description": "High-intensity competition prep app for university academic duels covering Data Analysis, Verbal Reasoning, Applied Mathematics, and African General Knowledge with Quick Buzz, Brain Math, and live leaderboards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
